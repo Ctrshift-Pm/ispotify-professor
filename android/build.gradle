@@ -1,0 +1,40 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+def configureAndroidProject = { Project project ->
+    def androidExtension = project.extensions.findByName("android")
+    if (androidExtension == null) {
+        return
+    }
+
+    if (androidExtension.hasProperty("compileSdk")) {
+        androidExtension.compileSdk = 36
+    } else if (androidExtension.hasProperty("compileSdkVersion")) {
+        androidExtension.compileSdkVersion 36
+    }
+}
+
+subprojects { subproject ->
+    subproject.plugins.withId("com.android.application") {
+        configureAndroidProject(subproject)
+    }
+    subproject.plugins.withId("com.android.library") {
+        configureAndroidProject(subproject)
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
